@@ -68,7 +68,9 @@ pub fn get_window() -> Option<tauri::WebviewWindow> {
 }
 
 
-fn on_resize(wq: Single<Entity, With<PrimaryWindow>>, mut ev: EventReader<WindowResized>) {
+fn on_resize(wq: Option<Single<Entity, With<PrimaryWindow>>>, mut ev: EventReader<WindowResized>) {
+  let Some(wq) = wq else { return; };
+
   let w = wq.into_inner();
 
   for e in ev.read() {
