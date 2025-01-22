@@ -2,7 +2,7 @@ use std::sync::OnceLock;
 
 use bevy::prelude::*;
 use bevy::winit::WinitWindows;
-use bevy::window::{PrimaryWindow, WindowResized};
+use bevy::window::{EnabledButtons, PrimaryWindow, WindowResized};
 use wry::raw_window_handle::{HasWindowHandle, RawWindowHandle};
 
 
@@ -11,16 +11,25 @@ static TAURI: OnceLock<tauri::AppHandle> = OnceLock::new();
 
 pub fn register(app: &mut App) {{
   app
-    .add_systems(Startup, init_tauri)
-    .add_systems(PreUpdate, on_resize);
+    .add_systems(Startup, setup)
+    .add_systems(PreUpdate, update);
 };}
 
 
-fn init_tauri(
+fn setup(
   winit_windows: NonSend<WinitWindows>,
-  window_query: Single<Entity, With<PrimaryWindow>>,
+  window_query: Single<(Entity, Mut<Window>), With<PrimaryWindow>>,
 ) {
-  let Some(window) = winit_windows.get_window(window_query.into_inner())
+  let (entity, mut window) = window_query.into_inner();
+
+  window.resizable = false;
+
+  window.enabled_buttons = EnabledButtons {
+    maximize: false,
+    ..Default::default()
+  };
+
+  let Some(window) = winit_windows.get_window(entity)
     else { println!("no window"); return; };
 
   let RawWindowHandle::Win32(handle) = window.window_handle().unwrap().as_raw()
@@ -68,7 +77,7 @@ pub fn get_window() -> Option<tauri::WebviewWindow> {
 }
 
 
-fn on_resize(wq: Option<Single<Entity, With<PrimaryWindow>>>, mut ev: EventReader<WindowResized>) {
+fn update(wq: Option<Single<Entity, With<PrimaryWindow>>>, mut ev: EventReader<WindowResized>) {
   let Some(wq) = wq else { return; };
 
   let w = wq.into_inner();

@@ -1,4 +1,4 @@
-mod tauri;
+mod window;
 
 use tap::Tap;
 use bevy::prelude::*;
@@ -8,6 +8,6 @@ use bevy::prelude::*;
 pub fn run() {
   App::new()
     .add_plugins(DefaultPlugins)
-    .tap_borrow_mut(tauri::register)
+    .tap_borrow_mut(window::register)
     .run();
 }
